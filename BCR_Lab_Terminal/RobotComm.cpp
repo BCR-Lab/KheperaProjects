@@ -103,7 +103,7 @@ void GUIFrame::RobotSerialSetup()
 		wxALIGN_LEFT | wxEXPAND); //expand area to fit allocated space
 }
 
-void GUIFrame::SendCommand(wxCommandEvent& event)
+void GUIFrame::SendCommand(wxCommandEvent& event) //UNFINISHED
 {
 	wxStreamToTextRedirector redirect(RobotOutput);
 
@@ -115,7 +115,7 @@ void GUIFrame::SendCommand(wxCommandEvent& event)
 		writeBuffer[i] = outputTemp[i];
 	RobotInput->Clear();
 
-	char   lpBuffer[] = "run user-flash";		       // lpBuffer should be  char or byte array, otherwise write wil fail
+	char   lpBuffer[] = "run user-flash";	//Test input	       // lpBuffer should be  char or byte array, otherwise write will fail
 	DWORD  dNoOFBytestoWrite;              // Num of bytes to write into the port
 	DWORD  dNoOfBytesWritten = 0;          // Num of bytes written to the port
 

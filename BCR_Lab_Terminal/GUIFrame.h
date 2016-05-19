@@ -87,6 +87,8 @@ private:
 	void SaveNetworkAs(wxCommandEvent& event);
 	void Quit(wxCommandEvent& event);
 
+	void NetworkToTextFile();
+
 	void TerminalSettings(wxCommandEvent& event);
 	void SendS37(wxCommandEvent& event);
 	//==========

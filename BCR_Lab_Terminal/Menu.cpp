@@ -1,10 +1,15 @@
 #include "GUIFrame.h"
 
+#include <string>
+
 #include <wx/textfile.h>
 #include <wx/choicdlg.h>
+#include <wx/wfstream.h>
 
 void GUIFrame::MenuSetup()
 {
+	CurrentDocPath = "nofile"; //Just a default setup since I can't seem to just check a wxString for NULL
+
 	//Menu Items
 	//==========
 	MainMenu = new wxMenuBar();
@@ -66,7 +71,7 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 		while (!tfile.Eof()) //Until the end of the file
 		{
 			
-			//If statement list could use replacmeent. Function pointer map too clunky/marginally less wasteful
+			//If statement list could use replacement. Function pointer map too clunky/marginally less wasteful
 			if (fileLineStr.find("numberOfInputs") != wxNOT_FOUND)
 			{
 				try
@@ -177,48 +182,153 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 	OpenDialog->Destroy();
 }
 
-/*
-	Needs:
-		Plasticweightmask writing? What composes this?
-		Retrieve network outputs/inputs from robot?
-*/
-void GUIFrame::SaveNetwork(wxCommandEvent& WXUNUSED(event))//UNFINISHED
+void GUIFrame::SaveNetwork(wxCommandEvent& WXUNUSED(event))
 {
 	wxTextFile tfile;
-	tfile.Open(CurrentDocPath);
-
-	if (tfile.Exists())
+	if (CurrentDocPath == "nofile")
 	{
-		tfile.Clear();
+		wxFileDialog *saveFileDialog = new wxFileDialog(
+			this, _("Save Neural Network As"), wxEmptyString, wxEmptyString,
+			_("Text File (*.txt)|*.txt"),
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT, wxDefaultPosition);
 
-		//SAVE STUFF
-	}
-	else
-	{
-		//OPEN DIALOG AND MAKE NEW FILE STUFF
+		if (saveFileDialog->ShowModal() == wxID_OK)
+		{
+			CurrentDocPath = saveFileDialog->GetPath(); // Sets our current document to the file the user selected
+			tfile.Create(CurrentDocPath);
+		}
+
+		saveFileDialog->Destroy();
 	}
 
+	//SetTitle(wxString("Edit - ") << CurrentDocPath);
+	
+	NetworkToTextFile();
 }
 
 void GUIFrame::SaveNetworkAs(wxCommandEvent& WXUNUSED(event))//UNFINISHED
 {
-	wxFileDialog *SaveDialog = new wxFileDialog(
-		this, _("Save File As _?"), wxEmptyString, wxEmptyString,
-		_("Text files (*.txt)|*.txt|C++ Source Files (*.cpp)|*.cpp|C Source files(*.c) | *.c | C header files(*.h) | *.h"),
+	wxTextFile tfile;
+	wxFileDialog *saveFileDialog = new wxFileDialog(
+		this, _("Save Neural Network As"), wxEmptyString, wxEmptyString,
+		_("Text File (*.txt)|*.txt"),
 		wxFD_SAVE | wxFD_OVERWRITE_PROMPT, wxDefaultPosition);
 
-	// Creates a Save Dialog with 4 file types
-	if (SaveDialog->ShowModal() == wxID_OK) // If the user clicked "OK"
+	if (saveFileDialog->ShowModal() == wxID_OK)
 	{
-		CurrentDocPath = SaveDialog->GetPath();
-		// set the path of our current document to the file the user chose to save under
-		RobotOutput->SaveFile(CurrentDocPath); // Save the file to the selected path
-		// Set the Title to reflect the file open
-		SetTitle(wxString("Edit - ") << SaveDialog->GetFilename());
+		CurrentDocPath = saveFileDialog->GetPath(); // Sets our current document to the file the user selected
+		tfile.Create(CurrentDocPath);
 	}
 
-	// Clean up after ourselves
-	SaveDialog->Destroy();
+	//SetTitle(wxString("Edit - ") << saveFileDialog->GetFilename());
+	saveFileDialog->Destroy();
+	
+	NetworkToTextFile();
+}
+
+void GUIFrame::NetworkToTextFile()
+{
+	wxTextFile tfile;
+	tfile.Open(CurrentDocPath);
+	if (tfile.IsOpened()) //FIXED to match standard network format
+	{
+		tfile.Clear();
+
+		std::string input = "numberOfInputs " + std::to_string(Input);
+		tfile.AddLine(input);
+
+		input = "numberOfOutputs " + std::to_string(Output);
+		tfile.AddLine(input);
+
+		input = "numberOfInterNeurons " + std::to_string(Inter);
+		tfile.AddLine(input);
+
+		unsigned int networkDimension = Inter + Input + Output;
+		input = "networkDimension " + std::to_string(networkDimension);
+		tfile.AddLine(input);
+
+		input = "networkActivations";
+		tfile.AddLine(input);
+		input = "";
+		for (unsigned int i = 0; i < networkDimension - 1; i++)
+		{
+			input += "0.000000 ";
+		}
+		input += "0.000000"; //just to keep off that extra spacing
+		tfile.AddLine(input);
+
+		input = "networkOutputs";
+		tfile.AddLine(input);
+		input = "";
+		for (unsigned int i = 0; i < networkDimension - 1; i++)
+		{
+			input += "0.000000 ";
+		}
+		input += "0.000000"; //just to keep off that extra spacing
+		tfile.AddLine(input);
+
+		input = "networkThresholds";
+		tfile.AddLine(input);
+		input = "";
+		for (unsigned int i = 0; i < networkDimension - 1; i++)
+		{
+			input += "0.000000 ";
+		}
+		input += "0.000000"; //just to keep off that extra spacing
+		tfile.AddLine(input);
+
+		input = "networkweights";
+		tfile.AddLine(input);
+		for (unsigned int j = 0; j < networkDimension; j++)
+		{
+			input = "";
+			for (unsigned int i = 0; i < networkDimension - 1; i++)
+			{
+				input += Weights->GetCellValue(i, j) + " ";
+			}
+			input += Weights->GetCellValue(networkDimension - 1, j); //just to keep off that extra spacing
+			tfile.AddLine(input);
+		}
+
+		input = "";
+		tfile.AddLine(input);
+
+		input = "networkinputs";
+		tfile.AddLine(input);
+		input = "";
+		for (unsigned int i = 0; i < Input - 1; i++)
+		{
+			input += "0.000000 ";
+		}
+		input += "0.000000"; //just to keep off that extra spacing
+		tfile.AddLine(input);
+
+		input = "networkoutputs";
+		tfile.AddLine(input);
+		input = "";
+		for (unsigned int i = 0; i < Output - 1; i++)
+		{
+			input += "0.000000 ";
+		}
+		input += "0.000000"; //just to keep off that extra spacing
+		tfile.AddLine(input);
+
+		input = "networkplasticweightsmask";
+		tfile.AddLine(input);
+		for (unsigned int j = 0; j < networkDimension; j++)
+		{
+			input = "";
+			for (unsigned int i = 0; i < networkDimension - 1; i++)
+			{
+				input += input += "0.000000 ";
+			}
+			input += "0.000000 "; //just to keep off that extra spacing
+			tfile.AddLine(input);
+		}
+
+		tfile.Write();
+		tfile.Close();
+	}
 }
 
 void GUIFrame::Quit(wxCommandEvent& WXUNUSED(event))

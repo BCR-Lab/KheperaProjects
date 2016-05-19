@@ -127,9 +127,9 @@ void GUIFrame::NetworkGridSetup()
 		5);
 
 	Weights = new wxGrid(this, -1, wxPoint(0, 0), wxSize(-1, -1));
-	wxGridCellFloatEditor *GridNumOnly = new wxGridCellFloatEditor();
+	wxGridCellFloatEditor *GridNumOnly = new wxGridCellFloatEditor(7, 6, wxGRID_FLOAT_FORMAT_FIXED);
 
-	//Weights->SetDefaultEditor(GridNumOnly); //UNFINISHED, validator breaks grid when using SetValue
+	Weights->SetDefaultEditor(GridNumOnly); //UNFINISHED, validator breaks grid when using SetValue
 	Weights->CreateGrid(1, 1); //A 3x3 matrix is the smallest dimensions of a network (1,1,1)
 	Weights->SetColLabelValue(0, "1");
 
@@ -137,6 +137,9 @@ void GUIFrame::NetworkGridSetup()
 	Weights->SetColLabelSize(20);
 	Weights->SetDefaultColSize(WeightsColSize);
 	Weights->SetRowLabelSize(WeightsColSize);
+
+	Weights->SetCellBackgroundColour(1, 1, *wxLIGHT_GREY);
+	//Weights->SetCellValue(0, 0, "0.000000");
 
 	WeightsSizer = new wxBoxSizer(wxVERTICAL);
 

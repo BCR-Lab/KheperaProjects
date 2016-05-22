@@ -1,3 +1,16 @@
+/*
+	Terminal.h
+	============
+	BioMimetic and Cogntive Robotics Laboratory
+	Stephan Kritikos, Student Researcher
+	
+	Class declartion of the Terminal class
+	This is the app declaration that wxWidgets will use to start the executable.
+	Almost all changes to the GUI itself should be done in GUIFrame
+
+	Last revised May 22, 2016
+*/
+
 #include <wx/wxprec.h>
 
 #include <wx/thread.h>
@@ -15,6 +28,9 @@ WX_DEFINE_ARRAY_PTR(wxThread *, wxArrayThread);
 class Terminal : public wxApp //wxWidgets based classes should be derived from wxApp
 {
 public:
+	Terminal();
+	virtual ~Terminal(){};
+
 	virtual bool OnInit();
 
 	// critical section protects access to all of the fields below
@@ -24,7 +40,7 @@ public:
 	// removed from the array
 	wxArrayThread m_threads;
 
-	// semaphore used to wait for the threads to exit, see MyFrame::OnQuit()
+	// semaphore used to wait for the threads to exit, see SerialFrame::OnQuit()
 	wxSemaphore m_semAllDone;
 
 	// indicates that we're shutting down and all threads should exit

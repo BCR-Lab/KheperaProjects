@@ -30,10 +30,10 @@
     <ClCompile Include="GUIFrame.cpp">
       <Filter>Source Files\GUIFrame</Filter>
     </ClCompile>
-    <ClCompile Include="RobotComm.cpp">
+    <ClCompile Include="NeuralNetGrid.cpp">
       <Filter>Source Files\GUIFrame</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetGrid.cpp">
+    <ClCompile Include="CommGUI.cpp">
       <Filter>Source Files\GUIFrame</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,13 +47,7 @@
     <ClInclude Include="Terminal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resources.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SerialThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -70,6 +64,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\logo2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\logo2alpha.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\bitmap4.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\logo2.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

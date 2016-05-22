@@ -14,15 +14,13 @@
     <ClCompile Include="GUIFrame.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="NeuralNetGrid.cpp" />
-    <ClCompile Include="RobotComm.cpp" />
+    <ClCompile Include="CommGUI.cpp" />
     <ClCompile Include="StdAfx.cpp" />
     <ClCompile Include="Terminal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUIFrame.h" />
     <ClInclude Include="resource1.h" />
-    <ClInclude Include="Resources.h" />
-    <ClInclude Include="SerialThread.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Terminal.h" />
   </ItemGroup>
@@ -30,9 +28,12 @@
     <ResourceCompile Include="BCR_Lab_Terminal.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\bitmap4.bmp" />
     <Image Include="res\Icon.ico" />
     <Image Include="res\logo.bmp" />
     <Image Include="res\logo2.bmp" />
+    <Image Include="res\logo2.png" />
+    <Image Include="res\logo2alpha.bmp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BB9711F5-40D8-4E29-AF03-B1BAED3BA652}</ProjectGuid>

@@ -1,3 +1,14 @@
+/*
+	CommGUI.cpp
+	===========
+	BioMimetic and Cogntive Robotics Laboratory
+	Stephan Kritikos, Student Researcher
+	Functions related to the drop down menu at the top of the GUI are defined here
+
+	Last revised May 21, 2016
+
+*/
+
 #include "GUIFrame.h"
 
 #include <string>
@@ -6,6 +17,14 @@
 #include <wx/choicdlg.h>
 #include <wx/wfstream.h>
 
+
+/*
+	MenuSetup
+	=====================
+	Adds several entries to the dropdown menus. Then adds those menus to the MainMenu to be arranged FCFS.
+	Refer to Terminal.cpp for the macro definitons to see which menu item relates to which function
+	Refer to wxMenu documentation for more information
+*/
 void GUIFrame::MenuSetup()
 {
 	CurrentDocPath = "nofile"; //Just a default setup since I can't seem to just check a wxString for NULL
@@ -40,12 +59,17 @@ void GUIFrame::MenuSetup()
 
 }
 
-//File Menu
+/*
+	NewNetwork
+	=====================
+	Provides a warning dialogue prompt that will alert the user that this menu item will erase the current Network.
+	Refer to NeuralNetGrid.cpp for ResetNetworkToDefaults
+*/
 void GUIFrame::NewNetwork(wxCommandEvent& WXUNUSED(event))
 {
 	wxMessageDialog *ClearPrompt = new wxMessageDialog(NULL,
-		wxT("This will reset your entire network back to the default settings. If you have unsaved work, it will be lost.\nContinue?"), wxT("Question"),
-		wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+		wxT("This will reset your entire neural network settings back to the default. If you have unsaved work, you should save it or it will be lost.\nContinue?"), wxT("Warning!"),
+		wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
 	if (ClearPrompt->ShowModal() == wxID_YES)
 	{
 		ResetNetworkToDefaults();
@@ -53,6 +77,13 @@ void GUIFrame::NewNetwork(wxCommandEvent& WXUNUSED(event))
 
 }
 
+/*
+	OpenNetwork
+	=====================
+	Opens a FileDialogue that will allow the use to search for the network text file
+	When chosen and OK is pressed, the text file will be opened and parsed. It does not require the items be in the right order, only that they be there
+	Information taken from the file will be filled into the respective locations in the GUI
+*/
 void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Validation issues could not be resolved.
 {
 	wxFileDialog *OpenDialog = new wxFileDialog(
@@ -82,8 +113,7 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 				}
 				catch (const std::invalid_argument& ia)
 				{
-					wxStreamToTextRedirector redirect(RobotOutput);
-					std::cout << "Invalid numberOfInputs setup: " << ia.what() << "\n"; //test output
+					RobotOutput->AppendText( "Invalid numberOfInputs setup: " + std::string(ia.what()) + "\n"); //test output
 				}
 			}
 			else if (fileLineStr.find("numberOfOutputs") != wxNOT_FOUND)
@@ -96,8 +126,7 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 				}
 				catch (const std::invalid_argument& ia)
 				{
-					wxStreamToTextRedirector redirect(RobotOutput);
-					std::cout << "Invalid numberOfOutputs setup: " << ia.what() << "\n"; //test output
+					RobotOutput->AppendText("Invalid numberOfOutputs setup: " + std::string(ia.what()) + "\n"); //test output
 				}
 			}
 			else if (fileLineStr.find("numberOfInterNeurons") != wxNOT_FOUND)
@@ -110,8 +139,7 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 				}
 				catch (const std::invalid_argument& ia)
 				{
-					wxStreamToTextRedirector redirect(RobotOutput);
-					std::cout << "Invalid numberOfInterNeurons setup: " << ia.what() << "\n"; //test output
+					RobotOutput->AppendText("Invalid numberOfInterNeurons setup: " + std::string(ia.what()) + "\n"); //test output
 				}
 
 			}
@@ -126,8 +154,7 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 				}
 				catch (const std::invalid_argument& ia)
 				{
-					wxStreamToTextRedirector redirect(RobotOutput);
-					std::cout << "Invalid networkThresholds setup: " << ia.what() <<"\n"; //test output
+					RobotOutput->AppendText("Invalid networkThresholds setup: " + std::string(ia.what()) + "\n"); //test output
 				}
 			}
 			else if (fileLineStr.find("networkweights") != wxNOT_FOUND)
@@ -153,14 +180,13 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 						{
 							//Weights->SetValueAsDouble();
 							//Weights->SetCellValue(row, col++, remainingString.SubString(0, remainingString.find(" ")) )
-							Weights->SetCellValue(row, col++, std::string(remainingString.SubString(0, remainingString.find(" "))) );
+							Weights->SetCellValue(row, col++, std::string(remainingString.SubString(0, remainingString.find(" ")-1)) );
 							//Weights->SaveEditControlValue();
 							networkWeights.push_back(std::stod(std::string(remainingString.SubString(0, remainingString.find(" ")))));
 						}
 						catch (const std::invalid_argument& ia)
 						{
-							wxStreamToTextRedirector redirect(RobotOutput);
-							std::cout << "Invalid networkweights setup: " << ia.what() << "\n"; //test output
+							RobotOutput->AppendText("Invalid networkweights setup: " + std::string(ia.what()) + "\n"); //test output
 							break;
 						}
 
@@ -182,6 +208,12 @@ void GUIFrame::OpenNetwork(wxCommandEvent& WXUNUSED(event)) //Unfinished: Valida
 	OpenDialog->Destroy();
 }
 
+/*
+	SaveNetwork
+	=====================
+	Opens a FileDialogue that will allow the user to specify a save location and file name if none was specified
+	If one has already been specified, it will save over that
+*/
 void GUIFrame::SaveNetwork(wxCommandEvent& WXUNUSED(event))
 {
 	wxTextFile tfile;
@@ -206,6 +238,11 @@ void GUIFrame::SaveNetwork(wxCommandEvent& WXUNUSED(event))
 	NetworkToTextFile();
 }
 
+/*
+	SaveNetworkAs
+	=====================
+	Opens a FileDialogue that will allow the user to specify a save location and file name, even if one was specified beforehand
+*/
 void GUIFrame::SaveNetworkAs(wxCommandEvent& WXUNUSED(event))//UNFINISHED
 {
 	wxTextFile tfile;
@@ -226,6 +263,14 @@ void GUIFrame::SaveNetworkAs(wxCommandEvent& WXUNUSED(event))//UNFINISHED
 	NetworkToTextFile();
 }
 
+/*
+	NetworkToTextFile
+	=====================
+	Prints the current Neural network information into a text file of specified location (by either SaveNerwork or SaveNetworkAs)
+	The format is fixed
+	NOTE: networkActiviations, networkOutputs, networkThresholds, networkinputs, networkoutputs, networkplasticweightsmask print as 0s due to
+		their values being derived from network cycling. This program does not load the Neural Network code
+*/
 void GUIFrame::NetworkToTextFile()
 {
 	wxTextFile tfile;
@@ -320,9 +365,9 @@ void GUIFrame::NetworkToTextFile()
 			input = "";
 			for (unsigned int i = 0; i < networkDimension - 1; i++)
 			{
-				input += input += "0.000000 ";
+				input += "0 ";
 			}
-			input += "0.000000 "; //just to keep off that extra spacing
+			input += "0"; //just to keep off that extra spacing
 			tfile.AddLine(input);
 		}
 
@@ -331,14 +376,26 @@ void GUIFrame::NetworkToTextFile()
 	}
 }
 
+/*
+	Quit
+	=====================
+	Event function that is run when the X button is pressed
+*/
 void GUIFrame::Quit(wxCommandEvent& WXUNUSED(event))
 {
 	Close(TRUE); // Tells the OS to quit running this process
 }
 
+/*
+	SendS37
+	=====================
+	Function intended to be used to send a .s37 executable to the robot over the serial connection
+	Currently contains only mostly example code
+	NOTE: UNFINISHED as of 5/22/2016
+*/
 void GUIFrame::SendS37(wxCommandEvent& event) //Massively unfinished, just opens a dialog
 {
-	wxFileDialog *OpenDialog = new wxFileDialog(
+	/*wxFileDialog *OpenDialog = new wxFileDialog(
 		this, _("Choose a file to send to the Robot."), wxEmptyString, wxEmptyString,
 		_("SREC (*.s37)|*.s37"),
 		wxFD_OPEN, wxDefaultPosition);
@@ -354,10 +411,15 @@ void GUIFrame::SendS37(wxCommandEvent& event) //Massively unfinished, just opens
 	}
 
 	// Clean up after ourselves
-	OpenDialog->Destroy();
+	OpenDialog->Destroy();*/
 }
 
-//Terminal Menu
+/*
+	SendSTerminalSettings37
+	=====================
+	Function intended to be used to adjust connection settings with the Robot
+	NOTE: UNFINISHED as of 5/22/2016
+*/
 void GUIFrame::TerminalSettings(wxCommandEvent& WXUNUSED(event))
 {
 

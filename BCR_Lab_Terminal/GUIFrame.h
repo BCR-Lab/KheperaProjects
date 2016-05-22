@@ -1,3 +1,19 @@
+/*
+	GUIFrame.h
+	============
+	BioMimetic and Cogntive Robotics Laboratory
+	Stephan Kritikos, Student Researcher
+	
+	Class declartion of the GUIFrame and SerialThread (which is listed here due to it's heavy ties to GUIFrame and it's tiny size)
+	Function impelenetation is spread by type into:
+		GUIFrame.cpp (general functionality functions and those dependent on wxIMPLEMENT_APP(Terminal))
+		Menu.cpp (functions related to the dropdown menu of the GUI)
+		NeuralNetGrid.cpp (functions related to the right hand side neural network editor)
+		CommGUI.cpp (functions related to the left hand side serial communication)
+
+	Last revised May 22, 2016
+*/
+
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
@@ -24,19 +40,23 @@
 #include <vector>
 #include <map>
 
-#include "Resources.h"
-#include "SerialThread.h"
+#include "resource1.h"
 
 #ifndef WX_PRECOMP // For compilers that support precompilation, includes "wx/wx.h".
 #include <wx/wx.h>
 #endif
 #pragma once
 
-class GUIFrame : public wxFrame
+
+class SerialThread;
+
+class GUIFrame : public wxFrame, private wxLog
 {
 public:
 	GUIFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
 	~GUIFrame();
+	
+	bool Cancelled();
 private:
 
 	//GUI Element Handles and Variables
@@ -48,8 +68,8 @@ private:
 	wxTextCtrl *RobotInput;
 
 	wxBoxSizer *NetworkSizer;
-	wxBoxSizer *NeuronSettingsSizer;
-	wxBoxSizer *WeightsSizer;
+	wxStaticBoxSizer *NeuronSettingsSizer;
+	wxStaticBoxSizer *WeightsSizer;
 
 	wxMenuBar *MainMenu;
 	wxMenu *m_pFileMenu;
@@ -62,11 +82,14 @@ private:
 	wxGrid *Weights;
 	double gridNums;
 
-	HANDLE serialComm;
+	HANDLE serialComm; //receives a copy of the pointer as to not set up the same serial port twice, should two threads ever be introduced. I have not tested 2 threads
 	BOOL   serialStatus;
 
 	size_t m_nRunning, // remember the number of running threads and total number of threads
 		m_nCount;
+
+	wxLog *Logger;
+	SerialThread *ThreadHandle;
 	//=================================
 
 	//Network storage
@@ -115,39 +138,28 @@ private:
 	//Serial Thread Related Functions
 	//===============================
 	void SendCommand(wxCommandEvent& event);
+	void SendWriteToThread(char *input);
 
-	void OnStartThread(wxCommandEvent& event);
-	void OnStartThreads(wxCommandEvent& event);
-	void OnStopThread(wxCommandEvent& event);
-	void OnPauseThread(wxCommandEvent& event);
-	void OnResumeThread(wxCommandEvent& event);
-
-	void OnStartWorker(wxCommandEvent& event);
-	void OnExecMain(wxCommandEvent& event);
-	void OnStartGUIThread(wxCommandEvent& event);
-
+	SerialThread *CreateThread(); // creates a new thread (but doesn't run it)
+	void StopThread();
 	void OnIdle(wxIdleEvent &event);
-	void OnWorkerEvent(wxThreadEvent& event);
-	void OnUpdateWorker(wxUpdateUIEvent& event);
 
-	// accessors for Worker thread (called in its context!)
-	bool Cancelled();
+	void UpdateThreadStatus(); // update display in our status bar: called during idle handling
 
-	// helper function - creates a new thread (but doesn't run it)
-	SerialThread *CreateThread();
-
-	// update display in our status bar: called during idle handling
-	void UpdateThreadStatus();
-
-
+	void DoLogLine(wxTextCtrl *text, const wxString& timestr, const wxString& threadstr, const wxString& msg);
+	void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info);
 	//================================
-	void ButtonSmushed(wxCommandEvent& event); //test function
 
+	void ButtonSmushed(wxCommandEvent& event); //test button function. Not attatched to any button right now
+
+protected:
 	DECLARE_EVENT_TABLE()
+
 };
+
 enum
 {
-	ROBOT_OUTPUT = wxID_HIGHEST + 1, // declares an id for main text
+	ROBOT_OUTPUT = wxID_HIGHEST + 1,
 	ROBOT_INPUT,
 	NETWORK_Neuron_Input,
 	NETWORK_Neuron_Inter,
@@ -159,22 +171,19 @@ enum
 	MENU_SaveAs,
 	MENU_Quit,
 	MENU_TerminalSettings,
-	MENU_SendS37,
-	
-	THREAD_QUIT = wxID_EXIT,
-	THREAD_ABOUT = wxID_ABOUT,
-	THREAD_TEXT = 101,
-	THREAD_CLEAR,
-	THREAD_START_THREAD = 201,
-	THREAD_START_THREADS,
-	THREAD_STOP_THREAD,
-	THREAD_PAUSE_THREAD,
-	THREAD_RESUME_THREAD,
+	MENU_SendS37
+};
 
-	THREAD_START_WORKER,
-	THREAD_EXEC_MAIN,
-	THREAD_START_GUI_THREAD,
 
-	WORKER_EVENT = wxID_HIGHEST + 2,   // this one gets sent from MyWorkerThread
-	GUITHREAD_EVENT                  // this one gets sent from MyGUIThread
+class SerialThread : public wxThread
+{
+public:
+	SerialThread(HANDLE serialComm, BOOL serialStatus);
+	virtual ~SerialThread();
+
+	virtual void *Entry();
+
+private:
+	HANDLE serialComm; //receives a copy of the pointer as to not set up the same serial port twice, should two threads ever be introduced. I have not tested 2 threads
+	BOOL   serialStatus;
 };
